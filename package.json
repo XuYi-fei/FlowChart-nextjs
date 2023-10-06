@@ -11,10 +11,14 @@
     "lint": "next lint --fix --dir pages --dir app --dir components --dir lib --dir layouts --dir scripts"
   },
   "dependencies": {
+    "@ant-design/cssinjs": "^1.17.0",
+    "@antv/g6": "^4.8.22",
     "@next/bundle-analyzer": "13.5.3",
     "@tailwindcss/forms": "^0.5.4",
     "@tailwindcss/typography": "^0.5.9",
+    "antd": "^5.9.4",
     "autoprefixer": "^10.4.13",
+    "axios": "^1.5.0",
     "contentlayer": "0.3.4",
     "esbuild": "0.18.11",
     "github-slugger": "^1.4.0",
@@ -25,6 +29,7 @@
     "next-themes": "^0.2.1",
     "pliny": "0.1.4",
     "postcss": "^8.4.24",
+    "protobufjs": "^7.2.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "reading-time": "1.5.0",
