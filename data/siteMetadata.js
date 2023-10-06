@@ -1,10 +1,10 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'Next.js Starter Blog',
-  author: 'Tails Azimuth',
-  headerTitle: 'TailwindBlog',
-  description: 'A blog created with Next.js and Tailwind.css',
-  language: 'en-us',
+  title: '系统节点流程图',
+  author: 'Yifei Xu',
+  headerTitle: '微服务系统',
+  description: '使用react与nextjs搭建网站、antv-g6实现流程图搭建',
+  language: 'zh-CN',
   theme: 'system', // system, dark or light
   siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
   siteRepo: 'https://github.com/timlrx/tailwind-nextjs-starter-blog',
@@ -17,7 +17,7 @@ const siteMetadata = {
   facebook: 'https://facebook.com',
   youtube: 'https://youtube.com',
   linkedin: 'https://www.linkedin.com',
-  locale: 'en-US',
+  locale: 'zh-CN',
   analytics: {
     // If you want to use an analytics provider you have to add it to the
     // content security policy in the `next.config.js` file.
@@ -69,7 +69,7 @@ const siteMetadata = {
       // example: https://giscus.app/themes/custom_example.css
       themeURL: '',
       // This corresponds to the `data-lang="en"` in giscus's configurations
-      lang: 'en',
+      lang: 'en'
     },
   },
   search: {
