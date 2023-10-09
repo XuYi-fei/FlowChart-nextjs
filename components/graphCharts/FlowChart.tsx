@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from "react";
 import { clientInfo, G6GraphConfig, graphCombos } from '@/data/G6GraphConfig'
 import G6 from '@antv/g6'
 import { G6Edge, G6Node, GraphEdge, GraphNode } from '@/components/graphCharts/graphTypes'
@@ -60,9 +60,12 @@ const register = async () => {
 export default function FlowChart() {
   const ref = React.useRef(null)
   const [ifLoading, setIfLoading] = React.useState(true)
+  const [graphData, setGraphData] = useState({ nodes: [], edges: [] })
+  const [graphEdges, setGraphEdges] = useState([])
   const [messageApi, contextHolder] = message.useMessage()
   let storeGraphEdges: G6Edge[] = []
   let storeClientId: string = ''
+  let firstLoading = true
   let graph: any
 
   const success = (info) => {
@@ -80,47 +83,52 @@ export default function FlowChart() {
 
   // Send the network request to get the new graph structure
   const updateGraph = async () => {
-    const graphData: any = {}
-    let combos: any = []
-    // Send the request and get the response
-    // Notice: It must be executed in sequence
-    await getGraphData().then((res) => {
-      graphData.nodes = res.nodes
-      graphData.edges = res.edges
-      combos = graphCombos
-    })
+    try {
+      const { nodes, edges } = await getGraphData()
+      // @ts-ignore
+      setGraphData({ nodes, edges })
+      // @ts-ignore
+      setGraphEdges([...edges])
+      let combos = graphCombos
+      // Get the nodes and edges from the response
+      const graphNodes = nodes
+      const graphEdges = edges
+      storeGraphEdges = [...graphEdges]
 
-    if (!graphData.nodes || !graphData.edges) {
-      error('无法从服务器获取流程图数据')
-      return true
-    }
-    // Get the nodes and edges from the response
-    const graphNodes = graphData.nodes
-    const graphEdges = graphData.edges
-    storeGraphEdges = [...graphEdges]
-
-    // Judge if the graph's nodes and edges change
-    // Only refresh the graph if the graph's nodes and edges are different
-    let graphChange = false
-    for (let i = 0; i < graphNodes.length; i++) {
-      if (!graph.findById(graphNodes[i].id)) {
-        graphChange = true
-        break
+      // Judge if the graph's nodes and edges change
+      // Only refresh the graph if the graph's nodes and edges are different
+      let graphChange = false
+      if (graphNodes){
+        for (let i = 0; i < graphNodes.length; i++) {
+          if (!graph.findById(graphNodes[i].id)) {
+            graphChange = true
+            break
+          }
+        }
+        if (graph.findAll('node', () => true) != graphNodes.length) graphChange = true
+        combos = graphNodes.length === 0? []: combos
       }
+      const newData = {
+        nodes: graphNodes,
+        edges: graphEdges,
+        combos: combos,
+      }
+      if (graphChange) {
+        graph.changeData(newData)
+        graph.updateLayout()
+      }
+      if (firstLoading) {
+        firstLoading = false
+        success('获取图数据成功')
+      }
+      setIfLoading(false)
+      return true
+    } catch (e) {
+      firstLoading = true
+      setIfLoading(true)
+      error('无法从服务器获取流程图数据')
+      return false
     }
-    if (graph.findAll('node', () => true) != graphNodes.length) graphChange = true
-
-    const newData = {
-      nodes: graphNodes,
-      edges: graphEdges,
-      combos: graphNodes.length === 0 ? [] : combos,
-    }
-
-    if (graphChange) {
-      graph.changeData(newData)
-      // graph.updateLayout()
-    }
-    return false
   }
 
   // Send the network request to get data flowing right now
@@ -132,7 +140,7 @@ export default function FlowChart() {
         storeClientId = clientId
       })
     if (!storeClientId) {
-      error('未初始化clientId')
+      console.log('未初始化clientId')
       return
     }
     await requestToUpdateDataFlow(storeClientId).then((res) => {
@@ -178,12 +186,7 @@ export default function FlowChart() {
         animate: true,
       })
       // graph.render()
-      updateGraph().then((res) => {
-        if (!res) {
-          success('获取图数据成功')
-          setIfLoading(false)
-        }
-      })
+      updateGraph()
       setTimeout(() => {
         graph.render()
       })
