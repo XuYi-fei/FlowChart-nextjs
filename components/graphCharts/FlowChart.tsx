@@ -65,6 +65,7 @@ export default function FlowChart() {
   const [messageApi, contextHolder] = message.useMessage()
   let storeGraphEdges: G6Edge[] = []
   let storeClientId: string = ''
+  let firstLoading = true
   let graph: any
 
   const success = (info) => {
@@ -116,8 +117,15 @@ export default function FlowChart() {
         graph.changeData(newData)
         graph.updateLayout()
       }
+      if (firstLoading) {
+        firstLoading = false
+        success('获取图数据成功')
+      }
+      setIfLoading(false)
       return true
     } catch (e) {
+      firstLoading = true
+      setIfLoading(true)
       error('无法从服务器获取流程图数据')
       return false
     }
@@ -178,12 +186,7 @@ export default function FlowChart() {
         animate: true,
       })
       // graph.render()
-      updateGraph().then((res) => {
-        if (res) {
-          success('获取图数据成功')
-          setIfLoading(false)
-        }
-      })
+      updateGraph()
       setTimeout(() => {
         graph.render()
       })
