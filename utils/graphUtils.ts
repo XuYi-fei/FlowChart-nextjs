@@ -1,6 +1,7 @@
 import type { GraphEdge, GraphNode } from '@/components/graphCharts/graphTypes'
-import { getDataFlow, getGraph, registerClient } from '@/api/manage'
+import { changeUpdateStrategy, createDockerClient, getDataFlow, getGraph, registerClient } from "@/api/manage";
 import { API_URL } from '@/api/apiConfig'
+import { AxiosResponse } from "axios";
 
 export const createNodes = (node: GraphNode) => {
   let nodeType: string
@@ -91,4 +92,16 @@ export const requestToUpdateDataFlow = async (clientId: string): Promise<unknown
   return await getDataFlow(API_URL.getDataFlowURL, {
     clientId: clientId,
   })
+}
+
+export const requestToChangeUpdateStrategy = async (
+  strategy: number
+): Promise<AxiosResponse<unknown, unknown>> => {
+  return await changeUpdateStrategy(API_URL.changeUpdateStrategyURL, strategy)
+}
+
+export const requestToCreateDockerClient = async (
+  parameter: object
+): Promise<AxiosResponse<unknown, unknown>> => {
+  return await createDockerClient(API_URL.createDockerClientURL, parameter)
 }

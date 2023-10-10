@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from "react";
+import React, { createRef, useEffect, useState } from 'react'
 import { clientInfo, G6GraphConfig, graphCombos } from '@/data/G6GraphConfig'
 import G6 from '@antv/g6'
 import { G6Edge, G6Node, GraphEdge, GraphNode } from '@/components/graphCharts/graphTypes'
@@ -98,7 +98,7 @@ export default function FlowChart() {
       // Judge if the graph's nodes and edges change
       // Only refresh the graph if the graph's nodes and edges are different
       let graphChange = false
-      if (graphNodes){
+      if (graphNodes) {
         for (let i = 0; i < graphNodes.length; i++) {
           if (!graph.findById(graphNodes[i].id)) {
             graphChange = true
@@ -106,7 +106,7 @@ export default function FlowChart() {
           }
         }
         if (graph.findAll('node', () => true) != graphNodes.length) graphChange = true
-        combos = graphNodes.length === 0? []: combos
+        combos = graphNodes.length === 0 ? [] : combos
       }
       const newData = {
         nodes: graphNodes,
