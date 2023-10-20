@@ -35,20 +35,7 @@ export function getDataFlow(url: string, parameter: any) {
     data: parameter,
   })
 }
-export function changeUpdateStrategy(url: string, parameter: number) {
-  return axios({
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    url: url,
-    method: 'post',
-    data: {
-      strategy: parameter,
-    },
-  })
-}
-
-export function createDockerClient(url: string, parameter: object) {
+export function changeUpdateStrategy(url: string, parameter: object) {
   return axios({
     headers: {
       'Content-Type': 'application/json',
@@ -59,6 +46,37 @@ export function createDockerClient(url: string, parameter: object) {
   })
 }
 
+export function createDockerClient(url: string, parameter: object) {
+  return axios({
+    url: url,
+    method: 'post',
+    data: parameter,
+  })
+}
+
+export function getDockerList(url: string) {
+  return axios({
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    url: url,
+    method: 'get',
+  })
+}
+
+export function keepAlive(url: string, clientId: string) {
+  // console.log("clientId:", clientId)
+  return axios({
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    url: url,
+    method: 'post',
+    data: {
+      clientId: clientId,
+    }
+  })
+}
 // deleteAction
 export function deleteAction(url: string, parameter: any) {
   return axios({

@@ -5,11 +5,7 @@ export const clientInfo = {
   clientType: 'front-end',
   clientName: 'ui',
   pubTopics: [],
-  subTopics: [
-    {
-      value: '*',
-    },
-  ],
+  subTopics: ['*'],
 }
 
 // 实例化 minimap 插件

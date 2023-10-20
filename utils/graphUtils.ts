@@ -1,7 +1,15 @@
 import type { GraphEdge, GraphNode } from '@/components/graphCharts/graphTypes'
-import { changeUpdateStrategy, createDockerClient, getDataFlow, getGraph, registerClient } from "@/api/manage";
+import {
+  changeUpdateStrategy,
+  createDockerClient,
+  getDataFlow,
+  getDockerList,
+  getGraph,
+  keepAlive,
+  registerClient,
+} from '@/api/manage'
 import { API_URL } from '@/api/apiConfig'
-import { AxiosResponse } from "axios";
+import { AxiosResponse } from 'axios'
 
 export const createNodes = (node: GraphNode) => {
   let nodeType: string
@@ -13,7 +21,7 @@ export const createNodes = (node: GraphNode) => {
   let anchorPoints: number[][]
   let comboId: string
   switch (node.clientType) {
-    case 'sensor':
+    case 'pub':
       nodeType = 'ellipse'
       size = [120, 80]
       linkPoints['right'] = true
@@ -31,7 +39,7 @@ export const createNodes = (node: GraphNode) => {
       ]
       comboId = 'Topics'
       break
-    case 'actor':
+    case 'sub':
       nodeType = 'diamond'
       size = [150, 80]
       linkPoints['left'] = true
@@ -94,14 +102,30 @@ export const requestToUpdateDataFlow = async (clientId: string): Promise<unknown
   })
 }
 
-export const requestToChangeUpdateStrategy = async (
-  strategy: number
+// export const requestToChangeUpdateStrategy = async (
+//   strategy: number
+// ): Promise<AxiosResponse<unknown, unknown>> => {
+//   return await changeUpdateStrategy(API_URL.changeUpdateStrategyURL, strategy)
+// }
+
+export const requestToUpdateClient = async (
+  strategy: object
 ): Promise<AxiosResponse<unknown, unknown>> => {
-  return await changeUpdateStrategy(API_URL.changeUpdateStrategyURL, strategy)
+  return await changeUpdateStrategy(API_URL.changeUpdateClientURL, strategy)
 }
 
 export const requestToCreateDockerClient = async (
   parameter: object
 ): Promise<AxiosResponse<unknown, unknown>> => {
   return await createDockerClient(API_URL.createDockerClientURL, parameter)
+}
+
+export const requestToGetDockerList = async (): Promise<AxiosResponse<unknown, unknown>> => {
+  return await getDockerList(API_URL.getDockerList)
+}
+
+export const requestToKeepAlive = async (
+  clientId: string
+): Promise<AxiosResponse<unknown, unknown>> => {
+  return await keepAlive(API_URL.keepAlive, clientId)
 }

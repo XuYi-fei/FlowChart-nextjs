@@ -7,6 +7,7 @@ import { G6Edge, G6Node, GraphEdge, GraphNode } from '@/components/graphCharts/g
 import {
   createEdge,
   createNodes,
+  requestToKeepAlive,
   requestToRegister,
   requestToUpdateDataFlow,
   requestToUpdateGraph,
@@ -21,17 +22,17 @@ export const getGraphData = async () => {
   const graphEdges: Array<G6Edge> = []
   let newGraphNodes: Array<GraphNode>
   let newGraphEdges: Array<GraphEdge>
-  let graphData: any
+  let graphData: unknown
   try {
     graphData = await requestToUpdateGraph()
-    graphData.nodes.filter((node: any) => {
-      return node.clientType != 'front-end'
-    })
+    // @ts-ignore
     newGraphNodes = graphData.nodes
+    // @ts-ignore
     newGraphEdges = graphData.edges
 
     const nodes = newGraphNodes.map((node) => createNodes(node))
     const edges = newGraphEdges.map((edge, id) => createEdge(edge, id))
+
     graphNodes.splice(0)
     graphEdges.splice(0)
     graphNodes.push(...nodes)
@@ -60,8 +61,6 @@ const register = async () => {
 export default function FlowChart() {
   const ref = React.useRef(null)
   const [ifLoading, setIfLoading] = React.useState(true)
-  const [graphData, setGraphData] = useState({ nodes: [], edges: [] })
-  const [graphEdges, setGraphEdges] = useState([])
   const [messageApi, contextHolder] = message.useMessage()
   let storeGraphEdges: G6Edge[] = []
   let storeClientId: string = ''
@@ -86,15 +85,19 @@ export default function FlowChart() {
     try {
       const { nodes, edges } = await getGraphData()
       // @ts-ignore
-      setGraphData({ nodes, edges })
-      // @ts-ignore
-      setGraphEdges([...edges])
+      // setGraphEdges([...edges])
       let combos = graphCombos
       // Get the nodes and edges from the response
-      const graphNodes = nodes
+      // @ts-ignore
+      const graphNodeIds = nodes.filter((e) => e.label == 'ui').map((e) => e.id)
       const graphEdges = edges
-      storeGraphEdges = [...graphEdges]
-
+      storeGraphEdges = []
+      for (const edge of graphEdges) {
+        if (!graphNodeIds.includes(edge.source) && !graphNodeIds.includes(edge.target)) {
+          storeGraphEdges = [...storeGraphEdges, edge]
+        }
+      }
+      const graphNodes = nodes.filter((e) => e.label != 'ui')
       // Judge if the graph's nodes and edges change
       // Only refresh the graph if the graph's nodes and edges are different
       let graphChange = false
@@ -110,7 +113,7 @@ export default function FlowChart() {
       }
       const newData = {
         nodes: graphNodes,
-        edges: graphEdges,
+        edges: storeGraphEdges,
         combos: combos,
       }
       if (graphChange) {
@@ -143,22 +146,33 @@ export default function FlowChart() {
       console.log('未初始化clientId')
       return
     }
+    await requestToKeepAlive(storeClientId)
+      .then((res) => {})
+      .catch((e) => {
+        console.log(e)
+      })
     await requestToUpdateDataFlow(storeClientId).then((res) => {
+      // @ts-ignore
+      if (!res.messages) {
+        error('无法获取数据流数据')
+        return
+      }
+      // @ts-ignore
       for (const msg of res.messages)
         messages.push({
           data: msg.data,
           publisherId: msg.publisherId,
-          topic: { value: msg.topic.value },
+          topic: msg.topic,
         })
     })
     if (messages.length === 0) {
-      error('无法获取数据流信息')
+      console.log('暂时无新数据')
       return
     }
     const newEdges: G6Edge[] = [...storeGraphEdges]
     for (const message of messages) {
       const index = newEdges.findIndex(
-        (edge) => edge.source === message.publisherId && edge.target === message.topic.value
+        (edge) => edge.source === message.publisherId && edge.target === message.topic
       )
       if (index === -1 || graph.findById(newEdges[index].id) === -1) continue
       else {
@@ -187,9 +201,7 @@ export default function FlowChart() {
       })
       // graph.render()
       updateGraph()
-      setTimeout(() => {
-        graph.render()
-      })
+      graph.render()
 
       // Update the graph structure and the flowing data periodically
       setInterval(() => {
