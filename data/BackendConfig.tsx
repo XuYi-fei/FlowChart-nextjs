@@ -1,11 +1,11 @@
 interface DockerConfig {
   name: string
-  tags: string[]
+  version: string[]
 }
 
 export const AvailableDocker: DockerConfig[] = [
   {
     name: 'tzq0301/platform-example-app',
-    tags: ['v1'],
+    version: ['v1'],
   },
 ]

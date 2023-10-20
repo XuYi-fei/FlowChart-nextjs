@@ -1,10 +1,11 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AvailableDocker } from '@/data/BackendConfig'
 import { Radio, Tooltip, Dropdown, Popconfirm, Space, message, Spin, RadioChangeEvent } from 'antd'
 import type { MenuProps } from 'antd'
 import { CheckCircleTwoTone, InfoCircleTwoTone, RightCircleTwoTone } from '@ant-design/icons'
-import { requestToChangeUpdateStrategy, requestToCreateDockerClient } from '@/utils/graphUtils'
+import { requestToCreateDockerClient, requestToGetDockerList } from '@/utils/graphUtils'
+import Strategy from '@/components/graphCharts/Strategy'
 
 const items: MenuProps['items'] = AvailableDocker.map((item, index) => {
   const dockerConfig = AvailableDocker.filter((childItem) => item.name == childItem.name)[0]
@@ -12,9 +13,9 @@ const items: MenuProps['items'] = AvailableDocker.map((item, index) => {
   return {
     key: index.toString(),
     label: item.name,
-    children: dockerConfig.tags.map((tag, childIndex) => ({
+    children: dockerConfig.version.map((version, childIndex) => ({
       key: index.toString() + '-' + childIndex.toString(),
-      label: tag,
+      label: version,
     })),
   }
 })
@@ -66,12 +67,13 @@ function StrategyChosenCase({ currentStrategyStatus, chosenStrategy }) {
 // Just show the latest item.
 export default function ToolBar() {
   const [loading, setLoading] = useState(false)
-  const [chosenDockerConfig, setChosenDockerConfig] = useState({ name: '', tag: '' })
+  const [chosenDockerConfig, setChosenDockerConfig] = useState({ name: '', version: '' })
   const [loadingStrategy, setLoadingStrategy] = useState('current')
   const [chosenStrategyId, setStrategyId] = useState('1')
   const [openConfirm, setOpenConfirm] = useState(false)
   const [confirmLoading, setConfirmLoading] = useState(false)
   const [cancelLoading, setCancelLoading] = useState(false)
+  const [dockerClientList, setDockerClientList] = useState([])
   // Some information to inform
   const [messageApi, contextHolder] = message.useMessage()
   const error = (info) => {
@@ -96,7 +98,7 @@ export default function ToolBar() {
       // @ts-ignore
       name: items[firstKey].label,
       // @ts-ignore
-      tag: items[firstKey].children[secondKey].label,
+      version: items[firstKey].children[secondKey].label,
     }
     // @ts-ignore
     setChosenDockerConfig(result)
@@ -108,7 +110,7 @@ export default function ToolBar() {
 
   const confirmSubmitDockerConfig = () => {
     console.log(`${chosenDockerConfig}`)
-    if (!chosenDockerConfig.name || !chosenDockerConfig.tag) {
+    if (!chosenDockerConfig.name || !chosenDockerConfig.version) {
       error('请先选择需要创建的Docker配置')
     } else {
       setCancelLoading(true)
@@ -131,25 +133,34 @@ export default function ToolBar() {
     }
   }
 
-  const onRadioChange = ({ target: { value } }: RadioChangeEvent) => {
-    // console.log(value)
-    setLoadingStrategy('loading')
+  const updateDockerClients = (params: string) => {}
 
-    requestToChangeUpdateStrategy(value)
+  useEffect(() => {
+    requestToGetDockerList()
       .then((res) => {
-        if (res) {
-          setLoadingStrategy('loaded')
-          setStrategyId(value)
-          // setTimeout(() => {
-          //   setLoadingStrategy('loaded')
-          // }, 3000)
-        } else {
-          error('切换失败，请稍后再试')
-          setLoadingStrategy('current')
-        }
+        setDockerClientList(res['applications'])
       })
-      .catch((e) => error(e.toString()))
-  }
+      .catch()
+  }, [])
+  // const onRadioChange = ({ target: { value } }: RadioChangeEvent) => {
+  //   // console.log(value)
+  //   setLoadingStrategy('loading')
+  //
+  //   requestToChangeUpdateStrategy(value)
+  //     .then((res) => {
+  //       if (res) {
+  //         setLoadingStrategy('loaded')
+  //         setStrategyId(value)
+  //         // setTimeout(() => {
+  //         //   setLoadingStrategy('loaded')
+  //         // }, 3000)
+  //       } else {
+  //         error('切换失败，请稍后再试')
+  //         setLoadingStrategy('current')
+  //       }
+  //     })
+  //     .catch((e) => error(e.toString()))
+  // }
 
   return (
     <>
@@ -158,7 +169,7 @@ export default function ToolBar() {
         <Space>
           <InfoCircleTwoTone />
           <Tooltip title="prompt text" className="m-2 grow">
-            <span className="font-bold">请选择Docker容器的name与tag</span>
+            <span className="font-bold">请选择Docker容器的name与version</span>
           </Tooltip>
           <div className="p-2">
             <Popconfirm
@@ -181,7 +192,7 @@ export default function ToolBar() {
                 menu={{ items, onClick }}
                 onClick={submitDocker}
               >
-                点击提交name与tag以进行容器创建
+                点击提交name与version以进行容器创建
               </Dropdown.Button>
             </Popconfirm>
           </div>
@@ -191,7 +202,7 @@ export default function ToolBar() {
                 <p>
                   <span className="font-bold">已选择容器: </span>
                   <span className="underline-offset-1 underline">
-                    name: {chosenDockerConfig.name}; tag: {chosenDockerConfig.tag}
+                    name: {chosenDockerConfig.name}; version: {chosenDockerConfig.version}
                   </span>
                 </p>
               </Tooltip>
@@ -202,26 +213,30 @@ export default function ToolBar() {
         </Space>
       </div>
       <div className="flex justify-start">
-        <Space>
-          <InfoCircleTwoTone />
-          <Tooltip title="prompt text" className="m-2 grow">
-            <span className="font-bold">请选择更新策略</span>
-          </Tooltip>
-          <Radio.Group
-            defaultValue="1"
-            buttonStyle="solid"
-            onChange={onRadioChange}
-            disabled={loadingStrategy == 'loading'}
-          >
-            <Radio.Button value="1">策略1</Radio.Button>
-            <Radio.Button value="2">策略2</Radio.Button>
-            <Radio.Button value="3">策略3</Radio.Button>
-          </Radio.Group>
-          <StrategyChosenCase
-            chosenStrategy={strategies[chosenStrategyId]}
-            currentStrategyStatus={loadingStrategy}
-          ></StrategyChosenCase>
-        </Space>
+        {/*<Space>*/}
+        <InfoCircleTwoTone />
+
+        <Tooltip title="prompt text" className="m-2 flex flex-col justify-center">
+          <span className="font-bold" style={{ minWidth: '100px' }}>
+            容器更新
+          </span>
+        </Tooltip>
+        <Strategy></Strategy>
+        {/*<Radio.Group*/}
+        {/*  defaultValue="1"*/}
+        {/*  buttonStyle="solid"*/}
+        {/*  onChange={onRadioChange}*/}
+        {/*  disabled={loadingStrategy == 'loading'}*/}
+        {/*>*/}
+        {/*  <Radio.Button value="1">策略1</Radio.Button>*/}
+        {/*  <Radio.Button value="2">策略2</Radio.Button>*/}
+        {/*  <Radio.Button value="3">策略3</Radio.Button>*/}
+        {/*</Radio.Group>*/}
+        {/*<StrategyChosenCase*/}
+        {/*  chosenStrategy={strategies[chosenStrategyId]}*/}
+        {/*  currentStrategyStatus={loadingStrategy}*/}
+        {/*></StrategyChosenCase>*/}
+        {/*</Space>*/}
       </div>
     </>
   )

@@ -91,7 +91,8 @@ export default function FlowChart() {
       setGraphEdges([...edges])
       let combos = graphCombos
       // Get the nodes and edges from the response
-      const graphNodes = nodes
+      // @ts-ignore
+      const graphNodes = nodes.filter((e) => e.label != 'ui')
       const graphEdges = edges
       storeGraphEdges = [...graphEdges]
 
@@ -152,7 +153,7 @@ export default function FlowChart() {
         })
     })
     if (messages.length === 0) {
-      error('无法获取数据流信息')
+      error('无法获取数据流信息或当前无新数据')
       return
     }
     const newEdges: G6Edge[] = [...storeGraphEdges]
