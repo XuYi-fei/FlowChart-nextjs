@@ -42,6 +42,7 @@ export const graphCombos: G6Combo[] = [
 ]
 
 export const G6GraphConfig = {
+  animated: true,
   fitView: true,
   fitCenter: true,
   // fitViewPadding: [1, 1, 1, 1],

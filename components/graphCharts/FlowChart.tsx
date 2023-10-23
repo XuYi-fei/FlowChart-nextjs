@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createRef, useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { clientInfo, G6GraphConfig, graphCombos } from '@/data/G6GraphConfig'
 import G6 from '@antv/g6'
 import { G6Edge, G6Node, GraphEdge, GraphNode } from '@/components/graphCharts/graphTypes'
@@ -18,13 +18,10 @@ import { window } from '@probe.gl/env'
 // Do some extra work to transform the graph data in
 //    the response to the data used in G6
 export const getGraphData = async () => {
-  const graphNodes: Array<G6Node> = []
-  const graphEdges: Array<G6Edge> = []
   let newGraphNodes: Array<GraphNode>
   let newGraphEdges: Array<GraphEdge>
-  let graphData: unknown
   try {
-    graphData = await requestToUpdateGraph()
+    const graphData = await requestToUpdateGraph()
     // @ts-ignore
     newGraphNodes = graphData.nodes
     // @ts-ignore
@@ -33,11 +30,7 @@ export const getGraphData = async () => {
     const nodes = newGraphNodes.map((node) => createNodes(node))
     const edges = newGraphEdges.map((edge, id) => createEdge(edge, id))
 
-    graphNodes.splice(0)
-    graphEdges.splice(0)
-    graphNodes.push(...nodes)
-    graphEdges.push(...edges)
-    return { nodes: graphNodes, edges: graphEdges }
+    return { nodes: [...nodes], edges: [...edges] }
   } catch (e) {
     console.log('err', e)
     return {}
@@ -46,9 +39,8 @@ export const getGraphData = async () => {
 
 // Register to the backend using {clientInfo} and receive a clientId
 const register = async () => {
-  let res: any
   try {
-    res = await requestToRegister(clientInfo)
+    const res = await requestToRegister(clientInfo)
     console.log(res)
     return res.clientId
   } catch (e) {
@@ -85,18 +77,17 @@ export default function FlowChart() {
     try {
       const { nodes, edges } = await getGraphData()
       // @ts-ignore
-      // setGraphEdges([...edges])
       let combos = graphCombos
       // Get the nodes and edges from the response
       // @ts-ignore
       const graphNodeIds = nodes.filter((e) => e.label == 'ui').map((e) => e.id)
       const graphEdges = edges
       storeGraphEdges = []
-      for (const edge of graphEdges) {
-        if (!graphNodeIds.includes(edge.source) && !graphNodeIds.includes(edge.target)) {
+      // Delete the useless edge corresponding to the ui node
+      for (const edge of graphEdges)
+        if (!graphNodeIds.includes(edge.source) && !graphNodeIds.includes(edge.target))
           storeGraphEdges = [...storeGraphEdges, edge]
-        }
-      }
+
       const graphNodes = nodes.filter((e) => e.label != 'ui')
       // Judge if the graph's nodes and edges change
       // Only refresh the graph if the graph's nodes and edges are different
@@ -114,7 +105,7 @@ export default function FlowChart() {
       const newData = {
         nodes: graphNodes,
         edges: storeGraphEdges,
-        combos: combos,
+        // combos: combos,
       }
       if (graphChange) {
         graph.changeData(newData)
@@ -146,11 +137,9 @@ export default function FlowChart() {
       console.log('未初始化clientId')
       return
     }
-    await requestToKeepAlive(storeClientId)
-      .then((res) => {})
-      .catch((e) => {
-        console.log(e)
-      })
+    await requestToKeepAlive(storeClientId).catch((e) => {
+      console.log(e)
+    })
     await requestToUpdateDataFlow(storeClientId).then((res) => {
       // @ts-ignore
       if (!res.messages) {
@@ -197,9 +186,7 @@ export default function FlowChart() {
         container: ref.current,
         width: window.innerWidth * 0.9,
         height: window.innerHeight * 0.75,
-        animate: true,
       })
-      // graph.render()
       updateGraph()
       graph.render()
 

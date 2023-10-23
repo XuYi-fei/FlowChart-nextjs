@@ -104,11 +104,12 @@ export default function Strategy() {
       })
       .catch((e) => {
         error(e.toString())
+        setUpdateLoading(false)
       })
-    setInterval(() => {
-      setSpinLoading(false)
-      error('更新出错，请稍后再试')
-    }, 5000)
+    // setInterval(() => {
+    //   setSpinLoading(false)
+    //   error('更新出错，请稍后再试')
+    // }, 5000)
   }
 
   useEffect(() => {
@@ -124,6 +125,7 @@ export default function Strategy() {
         onFinish={onFinish}
         onValuesChange={(changedValues, values) => {
           console.log(changedValues, values)
+          // if (changedValues['name']) values['version'] = ''
         }}
         initialValues={{
           updateStrategy: 0,
@@ -157,7 +159,7 @@ export default function Strategy() {
             <Form.Item label="docker image" name="newApplicationName" rules={[{ required: true }]}>
               <Select
                 placeholder="选择可用的Docker Image"
-                style={{ width: 225, margin: '0 8px' }}
+                style={{ width: 285, margin: '0 8px' }}
                 options={dockerImageOptions}
                 onChange={onDockerImageChange}
               ></Select>

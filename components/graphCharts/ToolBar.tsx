@@ -56,6 +56,7 @@ export default function ToolBar() {
   const [port, setPort] = useState(0)
   // Some information to inform
   const [messageApi, contextHolder] = message.useMessage()
+  const [form] = Form.useForm()
   const error = (info) => {
     messageApi.open({
       type: 'error',
@@ -70,6 +71,7 @@ export default function ToolBar() {
   }
 
   const onDockerImageChange = (newDockerImage: string) => {
+    form.setFieldValue('version', '')
     setDockerImage(newDockerImage)
   }
 
@@ -142,6 +144,9 @@ export default function ToolBar() {
   //       })
   //   }
   // }
+  const onValuesChange = (changedValues, values) => {
+    console.log(changedValues, values)
+  }
 
   const onFinish = (values: any) => {
     console.log('values', values)
@@ -152,18 +157,17 @@ export default function ToolBar() {
           success('Docker client 创建成功')
         } else {
           error('创建失败')
+          setLoading(false)
         }
       })
       .catch((e) => {
+        setLoading(false)
         error(e.toString())
       })
       .finally(() => {
         setLoading(false)
       })
-    setInterval(() => {
-      setLoading(false)
-      error('创建失败，请稍后再试')
-    }, 5000)
+
   }
 
   return (
@@ -182,9 +186,8 @@ export default function ToolBar() {
               <Form
                 name="createDockerForm"
                 onFinish={onFinish}
-                onValuesChange={(changedValues, values) => {
-                  console.log(changedValues, values)
-                }}
+                form={form}
+                onValuesChange={onValuesChange}
               >
                 <div>
                   <Form.Item noStyle>

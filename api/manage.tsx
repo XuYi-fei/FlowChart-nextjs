@@ -1,6 +1,6 @@
 import { axios } from '../utils/request'
 import type { AxiosResponse } from 'axios'
-import { ElMessage } from 'element-plus'
+// import { ElMessage } from 'element-plus'
 
 const api = {
   getUserInfo: '/getUserInfo',
