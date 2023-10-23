@@ -25,6 +25,7 @@ export default function Strategy() {
   const [dockerImage, setDockerImage] = useState('')
   const [port, setPort] = useState(0)
   const [spinLoading, setSpinLoading] = useState(false)
+  const [form] = Form.useForm()
 
   const onDockerImageChange = (newDockerImage: string) => {
     setDockerImage(newDockerImage)
@@ -100,6 +101,7 @@ export default function Strategy() {
       .then((res) => {
         setUpdateLoading(false)
         success('更新成功')
+        form.setFieldValue('oldApplicationId', '')
         updateList()
       })
       .catch((e) => {
@@ -121,6 +123,7 @@ export default function Strategy() {
     <div className="flex flex-col p-4 grow">
       {contextHolder}
       <Form
+        form={form}
         name="UpdateClientForm"
         onFinish={onFinish}
         onValuesChange={(changedValues, values) => {
