@@ -74,7 +74,7 @@ export function keepAlive(url: string, clientId: string) {
     method: 'post',
     data: {
       clientId: clientId,
-    }
+    },
   })
 }
 // deleteAction

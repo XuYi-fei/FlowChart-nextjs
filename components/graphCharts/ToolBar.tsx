@@ -148,26 +148,33 @@ export default function ToolBar() {
     console.log(changedValues, values)
   }
 
-  const onFinish = (values: any) => {
+  const onFinish = async (values: any) => {
     console.log('values', values)
     setLoading(true)
-    requestToCreateDockerClient(values)
-      .then((res) => {
-        if (res) {
-          success('Docker client 创建成功')
-        } else {
-          error('创建失败')
+    let i = 0
+    while (i < 3) {
+      await requestToCreateDockerClient(values)
+        .then((res) => {
+          if (res) {
+            i += 4
+            success('Docker client 创建成功')
+          } else {
+            if (i > 3) {
+              error('创建失败')
+              setLoading(false)
+            }
+            i++
+          }
+        })
+        .catch((e) => {
+          i++
           setLoading(false)
-        }
-      })
-      .catch((e) => {
-        setLoading(false)
-        error(e.toString())
-      })
-      .finally(() => {
-        setLoading(false)
-      })
-
+          error(e.toString())
+        })
+        .finally(() => {
+          setLoading(false)
+        })
+    }
   }
 
   return (
@@ -207,7 +214,7 @@ export default function ToolBar() {
                 <div>
                   <Form.Item noStyle style={{ display: 'block' }}>
                     <Space>
-                      <Form.Item name="version" label="docker version" rules={[{ required:true }]}>
+                      <Form.Item name="version" label="docker version" rules={[{ required: true }]}>
                         <Select
                           placeholder="镜像Version"
                           style={{ width: 150, margin: '0 8px' }}

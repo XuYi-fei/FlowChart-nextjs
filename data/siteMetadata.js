@@ -1,7 +1,7 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
   title: '系统节点流程图',
-  author: 'Yifei Xu',
+  author: '',
   headerTitle: '微服务系统',
   description: '使用react与nextjs搭建网站、antv-g6实现流程图搭建',
   language: 'zh-CN',
