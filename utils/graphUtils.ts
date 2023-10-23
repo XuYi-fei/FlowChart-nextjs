@@ -21,11 +21,15 @@ export const createNodes = (node: GraphNode) => {
   let anchorPoints: number[][]
   let comboId: string
   switch (node.clientType) {
-    case 'pub':
+    case 'sensor':
       nodeType = 'ellipse'
       size = [120, 80]
+      linkPoints['left'] = true
       linkPoints['right'] = true
-      anchorPoints = [[1, 0.5]]
+      anchorPoints = [
+        [0, 0.5],
+        [1, 0.5],
+      ]
       comboId = 'Sensors'
       break
     case 'topic':
@@ -39,7 +43,7 @@ export const createNodes = (node: GraphNode) => {
       ]
       comboId = 'Topics'
       break
-    case 'sub':
+    case 'actor':
       nodeType = 'diamond'
       size = [150, 80]
       linkPoints['left'] = true
@@ -48,6 +52,13 @@ export const createNodes = (node: GraphNode) => {
         [1, 0.5],
       ]
       comboId = 'Actors'
+      break
+    case 'driver':
+      nodeType = 'triangle'
+      size = [150, 80]
+      linkPoints['left'] = true
+      anchorPoints = [[1, 0.5]]
+      comboId = 'Drivers'
       break
     case 'app':
     default:
