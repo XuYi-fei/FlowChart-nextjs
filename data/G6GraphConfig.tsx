@@ -74,6 +74,18 @@ export const G6GraphConfig = {
       lineWidth: 2,
       stroke: '#7090ff',
     },
+    labelCfg: {
+      style: {
+        fontSize: 18,
+      },
+    },
+  },
+  defaultNode: {
+    labelCfg: {
+      style: {
+        fontSize: 20,
+      },
+    },
   },
   plugins: [minimap, grid],
 }

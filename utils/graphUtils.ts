@@ -23,7 +23,7 @@ export const createNodes = (node: GraphNode) => {
   switch (node.clientType) {
     case 'sensor':
       nodeType = 'ellipse'
-      size = [120, 80]
+      size = [200, 120]
       linkPoints['left'] = true
       linkPoints['right'] = true
       anchorPoints = [
@@ -34,7 +34,7 @@ export const createNodes = (node: GraphNode) => {
       break
     case 'topic':
       nodeType = 'modelRect'
-      size = [150, 80]
+      size = [200, 120]
       linkPoints['left'] = true
       linkPoints['right'] = true
       anchorPoints = [
@@ -45,8 +45,9 @@ export const createNodes = (node: GraphNode) => {
       break
     case 'actor':
       nodeType = 'diamond'
-      size = [150, 80]
+      size = [200, 120]
       linkPoints['left'] = true
+      linkPoints['right'] = true
       anchorPoints = [
         [0, 0.5],
         [1, 0.5],
@@ -54,16 +55,20 @@ export const createNodes = (node: GraphNode) => {
       comboId = 'Actors'
       break
     case 'driver':
-      nodeType = 'triangle'
-      size = [150, 80]
+      nodeType = 'rect'
+      size = [200, 120]
       linkPoints['left'] = true
-      anchorPoints = [[1, 0.5]]
+      linkPoints['right'] = true
+      anchorPoints = [
+        [0, 0.5],
+        [1, 0.5],
+      ]
       comboId = 'Drivers'
       break
     case 'app':
     default:
       nodeType = 'circle'
-      size = 100
+      size = 200
       linkPoints['left'] = true
       linkPoints['right'] = true
       anchorPoints = [

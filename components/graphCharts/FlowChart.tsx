@@ -88,7 +88,10 @@ export default function FlowChart() {
         if (!graphNodeIds.includes(edge.source) && !graphNodeIds.includes(edge.target))
           storeGraphEdges = [...storeGraphEdges, edge]
 
-      const graphNodes = nodes.filter((e) => e.label != 'ui')
+      let graphNodes = nodes.filter((e) => e.label != 'ui')
+      graphNodes.map((e) => {
+        e.label = e.label + '-' + e.id.substring(0, 4)
+      })
       // Judge if the graph's nodes and edges change
       // Only refresh the graph if the graph's nodes and edges are different
       let graphChange = false
