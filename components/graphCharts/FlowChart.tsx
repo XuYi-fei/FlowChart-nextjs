@@ -163,6 +163,7 @@ export default function FlowChart() {
       return
     }
     const newEdges: G6Edge[] = [...storeGraphEdges]
+    console.log('messages', messages)
     for (const message of messages) {
       const index = newEdges.findIndex(
         (edge) => edge.source === message.publisherId && edge.target === message.topic
