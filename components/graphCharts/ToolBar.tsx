@@ -72,6 +72,8 @@ export default function ToolBar() {
 
   const onDockerImageChange = (newDockerImage: string) => {
     form.setFieldValue('version', '')
+    const port = AvailableDocker.filter((e) => e.name === newDockerImage)[0].port || 0
+    if (port) form.setFieldValue('healthCheckPort', port)
     setDockerImage(newDockerImage)
   }
 

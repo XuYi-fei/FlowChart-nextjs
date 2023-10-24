@@ -28,6 +28,8 @@ export default function Strategy() {
   const [form] = Form.useForm()
 
   const onDockerImageChange = (newDockerImage: string) => {
+    const port = AvailableDocker.filter((e) => e.name === newDockerImage)[0].port || 0
+    if (port) form.setFieldValue('newApplicationHealthCheckPort', port)
     setDockerImage(newDockerImage)
   }
   const onDockerVersionChange = (newDockerVersion: string) => {
