@@ -1,5 +1,6 @@
 import { axios } from '../utils/request'
 import type { AxiosResponse } from 'axios'
+import { API_URL } from '@/api/apiConfig'
 // import { ElMessage } from 'element-plus'
 
 const api = {
@@ -61,6 +62,17 @@ export function getDockerList(url: string) {
     },
     url: url,
     method: 'get',
+  })
+}
+
+export function deleteDockerList(data: { applicationId: string }) {
+  return axios({
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    url: API_URL.deleteDockerClientURL,
+    method: 'post',
+    data: data,
   })
 }
 

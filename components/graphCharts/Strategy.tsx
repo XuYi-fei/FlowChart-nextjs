@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Dropdown, Form, Input, message, Popconfirm, Select, Space } from 'antd'
+import { Button, Dropdown, Form, Input, message, Popconfirm, Select, Space, Tooltip } from 'antd'
 import { AvailableDocker } from '@/data/BackendConfig'
 const { Option } = Select
 import type { SelectProps } from 'antd'
 import { requestToGetDockerList, requestToUpdateClient } from '@/utils/graphUtils'
-import { SyncOutlined } from '@ant-design/icons'
+import { InfoCircleTwoTone, SyncOutlined } from '@ant-design/icons'
 
 interface UpdateClientValue {
   clientId?: string
@@ -32,9 +32,7 @@ export default function Strategy() {
     if (port) form.setFieldValue('newApplicationHealthCheckPort', port)
     setDockerImage(newDockerImage)
   }
-  const onDockerVersionChange = (newDockerVersion: string) => {
-    // setDockerVersion(newDockerVersion)
-  }
+
   const onPortChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPort = parseInt(e.target.value || '0', 10)
     if (Number.isNaN(newPort)) return
@@ -122,97 +120,108 @@ export default function Strategy() {
   }, [])
 
   return (
-    <div className="flex flex-col p-4 grow">
-      {contextHolder}
-      <Form
-        form={form}
-        name="UpdateClientForm"
-        onFinish={onFinish}
-        onValuesChange={(changedValues, values) => {
-          console.log(changedValues, values)
-          // if (changedValues['name']) values['version'] = ''
-        }}
-        initialValues={{
-          updateStrategy: 0,
-          newApplicationHealthCheckPort: 8080,
-        }}
-      >
-        <div>
-          <Form.Item noStyle style={{ display: 'block' }}>
-            <Space>
-              <Form.Item name="oldApplicationId" label="clientId" rules={[{ required: true }]}>
-                <Select
-                  placeholder="请选择已创建的Client的ID"
-                  style={{ width: 325, margin: '0 8px' }}
-                  options={clientIdOptions}
-                ></Select>
-              </Form.Item>
-              <Form.Item>
-                <Space>
-                  <Button
-                    icon={<SyncOutlined spin={spinLoading} />}
-                    onClick={onClickRefresh}
-                  ></Button>
-                  <spin>更新当前可用client</spin>
-                </Space>
-              </Form.Item>
-            </Space>
-          </Form.Item>
-        </div>
-        <Form.Item noStyle>
-          <Space.Compact>
-            <Form.Item label="docker image" name="newApplicationName" rules={[{ required: true }]}>
-              <Select
-                placeholder="选择可用的Docker Image"
-                style={{ width: 285, margin: '0 8px' }}
-                options={dockerImageOptions}
-                onChange={onDockerImageChange}
-              ></Select>
+    <>
+      <InfoCircleTwoTone />
+
+      <Tooltip title="prompt text" className="m-2 flex flex-col justify-center">
+        <span className="font-bold" style={{ minWidth: '100px' }}>
+          容器更新
+        </span>
+      </Tooltip>
+      <div className="flex flex-col p-4 grow">
+        {contextHolder}
+        <Form
+          form={form}
+          name="UpdateClientForm"
+          onFinish={onFinish}
+          onValuesChange={(changedValues, values) => {
+            console.log(changedValues, values)
+            // if (changedValues['name']) values['version'] = ''
+          }}
+          initialValues={{
+            updateStrategy: 0,
+            newApplicationHealthCheckPort: 8080,
+          }}
+        >
+          <div>
+            <Form.Item noStyle style={{ display: 'block' }}>
+              <Space>
+                <Form.Item name="oldApplicationId" label="clientId" rules={[{ required: true }]}>
+                  <Select
+                    placeholder="请选择已创建的Client的ID"
+                    style={{ width: 325, margin: '0 8px' }}
+                    options={clientIdOptions}
+                  ></Select>
+                </Form.Item>
+                <Form.Item>
+                  <Space>
+                    <Button
+                      icon={<SyncOutlined spin={spinLoading} />}
+                      onClick={onClickRefresh}
+                    ></Button>
+                    <spin>更新当前可用client</spin>
+                  </Space>
+                </Form.Item>
+              </Space>
             </Form.Item>
-            <Form.Item
-              label="image version"
-              name="newApplicationVersion"
-              rules={[{ required: true }]}
-            >
-              <Select
-                placeholder="镜像Version"
-                style={{ width: 150, margin: '0 8px' }}
-                onChange={onDockerVersionChange}
-                options={dockerVersionOptions}
-              ></Select>
-            </Form.Item>
-          </Space.Compact>
-        </Form.Item>
-        <div>
+          </div>
           <Form.Item noStyle>
             <Space.Compact>
-              <Form.Item label="端口" name="newApplicationHealthCheckPort">
-                <Input
-                  type="number"
-                  value={port}
-                  onChange={onPortChange}
-                  style={{ width: 80, margin: '0 8px' }}
-                />
-              </Form.Item>
-              <Form.Item label="更新策略" name="updateStrategy">
+              <Form.Item
+                label="docker image"
+                name="newApplicationName"
+                rules={[{ required: true }]}
+              >
                 <Select
-                  placeholder="选择更新策略"
-                  style={{ width: 150, margin: '0 8px' }}
-                  onChange={onDockerVersionChange}
-                >
-                  <Option value={0}>default</Option>
-                  <Option value={1}>blue-green</Option>
-                </Select>
+                  placeholder="选择可用的Docker Image"
+                  style={{ width: 285, margin: '0 8px' }}
+                  options={dockerImageOptions}
+                  onChange={onDockerImageChange}
+                ></Select>
               </Form.Item>
-              <Form.Item>
-                <Button type="primary" htmlType="submit" loading={updateLoading}>
-                  更新client
-                </Button>
+              <Form.Item
+                label="image version"
+                name="newApplicationVersion"
+                rules={[{ required: true }]}
+              >
+                <Select
+                  placeholder="镜像Version"
+                  style={{ width: 150, margin: '0 8px' }}
+                  options={dockerVersionOptions}
+                ></Select>
               </Form.Item>
             </Space.Compact>
           </Form.Item>
-        </div>
-      </Form>
-    </div>
+          <div>
+            <Form.Item noStyle>
+              <Space.Compact>
+                <Form.Item label="端口" name="newApplicationHealthCheckPort">
+                  <Input
+                    type="number"
+                    value={port}
+                    onChange={onPortChange}
+                    style={{ width: 80, margin: '0 8px' }}
+                  />
+                </Form.Item>
+                <Form.Item label="更新策略" name="updateStrategy">
+                  <Select
+                    placeholder="选择更新策略"
+                    style={{ width: 150, margin: '0 8px' }}
+                  >
+                    <Option value={0}>default</Option>
+                    <Option value={1}>blue-green</Option>
+                  </Select>
+                </Form.Item>
+                <Form.Item>
+                  <Button type="primary" htmlType="submit" loading={updateLoading}>
+                    更新client
+                  </Button>
+                </Form.Item>
+              </Space.Compact>
+            </Form.Item>
+          </div>
+        </Form>
+      </div>
+    </>
   )
 }

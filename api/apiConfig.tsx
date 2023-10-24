@@ -8,6 +8,7 @@ export const API_URL = {
   changeUpdateStrategyURL: '/platform/strategy/update',
   changeUpdateClientURL: '/platform/application/update',
   createDockerClientURL: '/platform/application/create',
+  deleteDockerClientURL: '/platform/application/destroy',
   getDockerList: '/platform/application/list',
   keepAlive: '/platform/resource/keepAlive',
 }

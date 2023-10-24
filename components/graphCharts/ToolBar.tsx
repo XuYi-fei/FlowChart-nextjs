@@ -1,25 +1,15 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { AvailableDocker } from '@/data/BackendConfig'
+import { Tooltip, Space, message, Select, Button, Form, SelectProps, Input } from 'antd'
+const { Option } = Select
+import { InfoCircleTwoTone, SyncOutlined } from '@ant-design/icons'
 import {
-  Radio,
-  Tooltip,
-  Dropdown,
-  Popconfirm,
-  Space,
-  message,
-  Spin,
-  RadioChangeEvent,
-  Select,
-  Button,
-  Form,
-  SelectProps,
-  Input,
-} from 'antd'
-import type { MenuProps } from 'antd'
-import { CheckCircleTwoTone, InfoCircleTwoTone, RightCircleTwoTone } from '@ant-design/icons'
-import { requestToCreateDockerClient } from '@/utils/graphUtils'
-import Strategy from '@/components/graphCharts/Strategy'
+  requestToCreateDockerClient,
+  requestToGetDockerList,
+  requestToUpdateClient,
+} from '@/utils/graphUtils'
+import { deleteDockerList } from '@/api/manage'
 
 interface CreateClientValue {
   name?: string
@@ -32,31 +22,49 @@ interface CreateClient {
   onChange?: (value: CreateClientValue) => void
 }
 
-// const items: MenuProps['items'] = AvailableDocker.map((item, index) => {
-//   const dockerConfig = AvailableDocker.filter((childItem) => item.name == childItem.name)[0]
-//   // @ts-ignore
-//   return {
-//     key: index.toString(),
-//     label: item.name,
-//     children: dockerConfig.version.map((version, childIndex) => ({
-//       key: index.toString() + '-' + childIndex.toString(),
-//       label: version,
-//     })),
-//   }
-// })
+interface UpdateClientValue {
+  clientId?: string
+  dockerImage?: string
+  dockerVersion?: string
+  port?: number
+  stategy?: string
+}
+
+interface UpdateClient {
+  value?: UpdateClientValue
+  onChange?: (value: UpdateClientValue) => void
+}
+interface DeleteClientValue {
+  applicationId: string
+}
+
+interface DeleteClient {
+  value?: DeleteClientValue
+  onChange?: (value: DeleteClientValue) => void
+}
 
 // Just show the latest item.
 export default function ToolBar() {
   const [loading, setLoading] = useState(false)
-  const [chosenDockerConfig, setChosenDockerConfig] = useState({ name: '', version: '' })
-  // const [openConfirm, setOpenConfirm] = useState(false)
-  // const [confirmLoading, setConfirmLoading] = useState(false)
-  // const [cancelLoading, setCancelLoading] = useState(false)
-  const [dockerImage, setDockerImage] = useState('')
-  const [port, setPort] = useState(0)
+  // Create Docker variables
+  const [dockerCreateImage, setCreateDockerImage] = useState('')
+  const [createPort, setCreatePort] = useState(0)
+
+  // Update Docker variables
+  const [spinLoading, setSpinLoading] = useState(false)
+  const [updateLoading, setUpdateLoading] = useState(false)
+  const [dockerUpdateImage, setDockerImage] = useState('')
+  const [updatePort, setUpdatePort] = useState(0)
+  const [clientIdList, setClientIdList] = useState([])
+
+  // Update Docker variables
+  const [deleteLoading, setDeleteLoading] = useState(false)
+
   // Some information to inform
   const [messageApi, contextHolder] = message.useMessage()
-  const [form] = Form.useForm()
+  const [formCreate] = Form.useForm()
+  const [formUpdate] = Form.useForm()
+  const [formDelete] = Form.useForm()
   const error = (info) => {
     messageApi.open({
       type: 'error',
@@ -69,31 +77,32 @@ export default function ToolBar() {
       content: info,
     })
   }
-
-  const onDockerImageChange = (newDockerImage: string) => {
-    form.setFieldValue('version', '')
+  const dockerImages = AvailableDocker.map((e) => e.name)
+  // =======================
+  // Create Docker Functions
+  const onDockerCreateImageChange = (newDockerImage: string) => {
+    formCreate.setFieldValue('version', '')
     const port = AvailableDocker.filter((e) => e.name === newDockerImage)[0].port || 0
-    if (port) form.setFieldValue('healthCheckPort', port)
-    setDockerImage(newDockerImage)
+    if (port) formCreate.setFieldValue('healthCheckPort', port)
+    setCreateDockerImage(newDockerImage)
   }
 
-  const onPortChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onCreatePortChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPort = parseInt(e.target.value || '0', 10)
     if (Number.isNaN(newPort)) return
-    setPort(newPort)
+    setCreatePort(newPort)
   }
 
-  const dockerImages = AvailableDocker.map((e) => e.name)
-  const dockerImageOptions: SelectProps['options'] = dockerImages.map((e) => {
+  const dockerCreateImageOptions: SelectProps['options'] = dockerImages.map((e) => {
     return {
       value: e,
       label: e,
     }
   })
 
-  const dockerVersions = AvailableDocker.filter((e) => e.name === dockerImage)[0]
-  const dockerVersionOptions: SelectProps['options'] = dockerVersions
-    ? dockerVersions.version.map((e) => {
+  const dockerCreateVersions = AvailableDocker.filter((e) => e.name === dockerCreateImage)[0]
+  const dockerCreateVersionOptions: SelectProps['options'] = dockerCreateVersions
+    ? dockerCreateVersions.version.map((e) => {
         return {
           value: e,
           label: e,
@@ -101,56 +110,7 @@ export default function ToolBar() {
       })
     : []
 
-  // const onClick: MenuProps['onClick'] = ({ key }) => {
-  //   const keys = key.split('-')
-  //   const firstKey = Number(keys[0])
-  //   const secondKey = Number(keys[1])
-  //   // @ts-ignore
-  //   const result = {
-  //     // @ts-ignore
-  //     name: items[firstKey].label,
-  //     // @ts-ignore
-  //     version: items[firstKey].children[secondKey].label,
-  //   }
-  //   // @ts-ignore
-  //   setChosenDockerConfig(result)
-  // }
-
-  // const submitDocker = () => {
-  //   setOpenConfirm(true)
-  // }
-
-  // const confirmSubmitDockerConfig = () => {
-  //   console.log(`${chosenDockerConfig}`)
-  //   if (!chosenDockerConfig.name || !chosenDockerConfig.version) {
-  //     error('请先选择需要创建的Docker配置')
-  //   } else {
-  //     chosenDockerConfig['port'] = 18001
-  //     setCancelLoading(true)
-  //     setConfirmLoading(true)
-  //     console.log(chosenDockerConfig)
-  //     requestToCreateDockerClient(chosenDockerConfig)
-  //       .then((res) => {
-  //         if (res) {
-  //           success('Docker client 创建成功')
-  //         } else {
-  //           error('创建失败')
-  //         }
-  //       })
-  //       .catch((e) => {
-  //         error(e.toString())
-  //       })
-  //       .finally(() => {
-  //         setConfirmLoading(false)
-  //         setCancelLoading(false)
-  //       })
-  //   }
-  // }
-  const onValuesChange = (changedValues, values) => {
-    console.log(changedValues, values)
-  }
-
-  const onFinish = async (values: any) => {
+  const onCreateFinish = async (values: any) => {
     console.log('values', values)
     setLoading(true)
     let i = 0
@@ -160,6 +120,7 @@ export default function ToolBar() {
           if (res) {
             i += 4
             success('Docker client 创建成功')
+            updateList()
           } else {
             if (i > 3) {
               error('创建失败')
@@ -178,6 +139,95 @@ export default function ToolBar() {
         })
     }
   }
+  // =======================
+  // Update Docker Functions
+  const onDockerUpdateImageChange = (newDockerImage: string) => {
+    const port = AvailableDocker.filter((e) => e.name === newDockerImage)[0].port || 0
+    if (port) formUpdate.setFieldValue('newApplicationHealthCheckPort', port)
+    setDockerImage(newDockerImage)
+  }
+
+  const onUpdatePortChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPort = parseInt(e.target.value || '0', 10)
+    if (Number.isNaN(newPort)) return
+    setUpdatePort(newPort)
+  }
+
+  const onClickRefresh = () => {
+    setSpinLoading(true)
+    updateList()
+    success('刷新成功')
+    setSpinLoading(false)
+  }
+  const dockerUpdateImageOptions: SelectProps['options'] = dockerImages.map((e) => {
+    return {
+      value: e,
+      label: e,
+    }
+  })
+
+  const dockerUpdateVersions = AvailableDocker.filter((e) => e.name === dockerUpdateImage)[0]
+  const dockerUpdateVersionOptions: SelectProps['options'] = dockerUpdateVersions
+    ? dockerUpdateVersions.version.map((e) => {
+        return {
+          value: e,
+          label: e,
+        }
+      })
+    : []
+
+  const clientIdOptions: SelectProps['options'] = clientIdList
+    ? clientIdList.map((e) => {
+        return {
+          value: e['id'],
+          // @ts-ignore
+          label: e['id'].substring(0, 4) + ' | ' + e['name'] + ' | ' + e['version'],
+        }
+      })
+    : []
+  const updateList = () => {
+    requestToGetDockerList().then((res) => {
+      setClientIdList(res['applications'])
+    })
+  }
+  const onUpdateFinish = (values: UpdateClient) => {
+    console.log('values', values)
+    setUpdateLoading(true)
+    // setKey(key + 1)
+    requestToUpdateClient(values)
+      .then((res) => {
+        setUpdateLoading(false)
+        success('更新成功')
+        formUpdate.setFieldValue('oldApplicationId', '')
+        updateList()
+      })
+      .catch((e) => {
+        error(e.toString())
+        setUpdateLoading(false)
+      })
+  }
+  // =======================
+  // Delete Docker Functions
+  const onDeleteFinish = (values: DeleteClientValue) => {
+    console.log('values', values)
+    setDeleteLoading(true)
+    deleteDockerList(values)
+      .then((res) => {
+        setDeleteLoading(false)
+        success('删除成功')
+        formDelete.setFieldValue('applicationId', '')
+        updateList()
+      })
+      .catch((e) => {
+        error(e.toString())
+        setDeleteLoading(false)
+      })
+  }
+
+  useEffect(() => {
+    // @ts-ignore
+    updateList()
+  }, [])
 
   return (
     <>
@@ -194,9 +244,11 @@ export default function ToolBar() {
             <Space>
               <Form
                 name="createDockerForm"
-                onFinish={onFinish}
-                form={form}
-                onValuesChange={onValuesChange}
+                onFinish={onCreateFinish}
+                form={formCreate}
+                onValuesChange={(changedValues, values) => {
+                  console.log(changedValues, values)
+                }}
               >
                 <div>
                   <Form.Item noStyle>
@@ -205,8 +257,8 @@ export default function ToolBar() {
                         <Select
                           placeholder="选择可用的Docker Image"
                           style={{ width: 250, margin: '0 8px' }}
-                          options={dockerImageOptions}
-                          onChange={onDockerImageChange}
+                          options={dockerCreateImageOptions}
+                          onChange={onDockerCreateImageChange}
                         ></Select>
                       </Form.Item>
                     </Space>
@@ -220,44 +272,21 @@ export default function ToolBar() {
                         <Select
                           placeholder="镜像Version"
                           style={{ width: 150, margin: '0 8px' }}
-                          options={dockerVersionOptions}
+                          options={dockerCreateVersionOptions}
                         ></Select>
                       </Form.Item>
                       <Form.Item label="端口" name="healthCheckPort">
                         <Input
                           type="number"
-                          value={port}
-                          onChange={onPortChange}
+                          value={createPort}
+                          onChange={onCreatePortChange}
                           style={{ width: 80, margin: '0 8px' }}
                         />
                       </Form.Item>
                       <Form.Item>
-                        {/*<Popconfirm*/}
-                        {/*  title="注意"*/}
-                        {/*  description="确定根据配置创建Docker吗？"*/}
-                        {/*  open={openConfirm}*/}
-                        {/*  cancelText="取消"*/}
-                        {/*  okText="确定"*/}
-                        {/*  onConfirm={confirmSubmitDockerConfig}*/}
-                        {/*  onCancel={() => {*/}
-                        {/*    setConfirmLoading(false)*/}
-                        {/*    setOpenConfirm(false)*/}
-                        {/*  }}*/}
-                        {/*  okButtonProps={{ loading: confirmLoading }}*/}
-                        {/*  cancelButtonProps={{ disabled: cancelLoading }}*/}
-                        {/*>*/}
                         <Button loading={loading} htmlType="submit" type="primary">
                           创建client
                         </Button>
-                        {/*<Dropdown.Button*/}
-                        {/*  type="primary"*/}
-                        {/*  loading={loading}*/}
-                        {/*  menu={{ items, onClick }}*/}
-                        {/*  onClick={submitDocker}*/}
-                        {/*>*/}
-                        {/*  点击提交name与version以进行容器创建*/}
-                        {/*</Dropdown.Button>*/}
-                        {/*</Popconfirm>*/}
                       </Form.Item>
                     </Space>
                   </Form.Item>
@@ -265,24 +294,11 @@ export default function ToolBar() {
               </Form>
             </Space>
           </div>
-          {chosenDockerConfig.name ? (
-            <div className="p-0.5 bg-gray-100 rounded-md shadow-md">
-              <Tooltip title="prompt text" className="m-1 grow mt-2 text-gray-600">
-                <p>
-                  <span className="font-bold">已选择容器: </span>
-                  <span className="underline-offset-1 underline">
-                    name: {chosenDockerConfig.name}; version: {chosenDockerConfig.version}
-                  </span>
-                </p>
-              </Tooltip>
-            </div>
-          ) : (
-            <></>
-          )}
         </Space>
       </div>
+      {/**/}
+      {/*UpdateClient*/}
       <div className="flex justify-start">
-        {/*<Space>*/}
         <InfoCircleTwoTone />
 
         <Tooltip title="prompt text" className="m-2 flex flex-col justify-center">
@@ -290,7 +306,130 @@ export default function ToolBar() {
             容器更新
           </span>
         </Tooltip>
-        <Strategy></Strategy>
+        <div className="flex flex-col p-4 grow">
+          <Form
+            form={formUpdate}
+            name="UpdateClientForm"
+            onFinish={onUpdateFinish}
+            onValuesChange={(changedValues, values) => {
+              console.log(changedValues, values)
+            }}
+            initialValues={{
+              updateStrategy: 0,
+            }}
+          >
+            <div>
+              <Form.Item noStyle style={{ display: 'block' }}>
+                <Space>
+                  <Form.Item name="oldApplicationId" label="clientId" rules={[{ required: true }]}>
+                    <Select
+                      placeholder="请选择已创建的Client的ID"
+                      style={{ width: 325, margin: '0 8px' }}
+                      options={clientIdOptions}
+                    ></Select>
+                  </Form.Item>
+                  <Form.Item>
+                    <Space>
+                      <Button
+                        icon={<SyncOutlined spin={spinLoading} />}
+                        onClick={onClickRefresh}
+                      ></Button>
+                      <spin>更新当前可用client</spin>
+                    </Space>
+                  </Form.Item>
+                </Space>
+              </Form.Item>
+            </div>
+            <Form.Item noStyle>
+              <Space.Compact>
+                <Form.Item
+                  label="docker image"
+                  name="newApplicationName"
+                  rules={[{ required: true }]}
+                >
+                  <Select
+                    placeholder="选择可用的Docker Image"
+                    style={{ width: 285, margin: '0 8px' }}
+                    options={dockerUpdateImageOptions}
+                    onChange={onDockerUpdateImageChange}
+                  ></Select>
+                </Form.Item>
+                <Form.Item
+                  label="image version"
+                  name="newApplicationVersion"
+                  rules={[{ required: true }]}
+                >
+                  <Select
+                    placeholder="镜像Version"
+                    style={{ width: 150, margin: '0 8px' }}
+                    options={dockerUpdateVersionOptions}
+                  ></Select>
+                </Form.Item>
+              </Space.Compact>
+            </Form.Item>
+            <div>
+              <Form.Item noStyle>
+                <Space.Compact>
+                  <Form.Item label="端口" name="newApplicationHealthCheckPort">
+                    <Input
+                      type="number"
+                      value={updatePort}
+                      onChange={onUpdatePortChange}
+                      style={{ width: 80, margin: '0 8px' }}
+                    />
+                  </Form.Item>
+                  <Form.Item label="更新策略" name="updateStrategy">
+                    <Select placeholder="选择更新策略" style={{ width: 150, margin: '0 8px' }}>
+                      <Option value={0}>default</Option>
+                      <Option value={1}>blue-green</Option>
+                    </Select>
+                  </Form.Item>
+                  <Form.Item>
+                    <Button type="primary" htmlType="submit" loading={updateLoading}>
+                      更新client
+                    </Button>
+                  </Form.Item>
+                </Space.Compact>
+              </Form.Item>
+            </div>
+          </Form>
+        </div>
+      </div>
+      {/**/}
+      {/*DeleteClient*/}
+      <div className="flex justify-start">
+        <InfoCircleTwoTone />
+
+        <Tooltip title="prompt text" className="m-2 flex flex-col justify-center">
+          <span className="font-bold" style={{ minWidth: '100px' }}>
+            容器删除
+          </span>
+        </Tooltip>
+        <div className="flex flex-col p-4 grow">
+          <Form
+            form={formDelete}
+            name="DeleteClientForm"
+            layout={'inline'}
+            onFinish={onDeleteFinish}
+            onValuesChange={(changedValues, values) => {
+              console.log(changedValues, values)
+            }}
+          >
+            <Form.Item name="applicationId" label="clientId" rules={[{ required: true }]}>
+              <Select
+                placeholder="请选择已创建的Client的ID"
+                style={{ width: 325, margin: '0 8px' }}
+                options={clientIdOptions}
+              ></Select>
+            </Form.Item>
+
+            <Form.Item>
+              <Button type="primary" htmlType="submit" loading={deleteLoading}>
+                删除client
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
       </div>
     </>
   )
