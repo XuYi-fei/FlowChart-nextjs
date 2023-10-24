@@ -17,6 +17,8 @@ export const createNodes = (node: GraphNode) => {
   const linkPoints = {
     fill: '#ffffff',
     stroke: '#7090ff',
+    left: true,
+    right: true,
   }
   let anchorPoints: number[][]
   let comboId: string
@@ -24,8 +26,6 @@ export const createNodes = (node: GraphNode) => {
     case 'sensor':
       nodeType = 'ellipse'
       size = [200, 120]
-      linkPoints['left'] = true
-      linkPoints['right'] = true
       anchorPoints = [
         [0, 0.5],
         [1, 0.5],
@@ -35,8 +35,6 @@ export const createNodes = (node: GraphNode) => {
     case 'topic':
       nodeType = 'modelRect'
       size = [200, 120]
-      linkPoints['left'] = true
-      linkPoints['right'] = true
       anchorPoints = [
         [0, 0.5],
         [1, 0.5],
@@ -46,8 +44,6 @@ export const createNodes = (node: GraphNode) => {
     case 'actor':
       nodeType = 'diamond'
       size = [200, 120]
-      linkPoints['left'] = true
-      linkPoints['right'] = true
       anchorPoints = [
         [0, 0.5],
         [1, 0.5],
@@ -57,8 +53,6 @@ export const createNodes = (node: GraphNode) => {
     case 'driver':
       nodeType = 'rect'
       size = [200, 120]
-      linkPoints['left'] = true
-      linkPoints['right'] = true
       anchorPoints = [
         [0, 0.5],
         [1, 0.5],
@@ -69,8 +63,6 @@ export const createNodes = (node: GraphNode) => {
     default:
       nodeType = 'circle'
       size = 200
-      linkPoints['left'] = true
-      linkPoints['right'] = true
       anchorPoints = [
         [0, 0.5],
         [1, 0.5],

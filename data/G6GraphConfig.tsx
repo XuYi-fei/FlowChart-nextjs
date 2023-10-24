@@ -83,7 +83,7 @@ export const G6GraphConfig = {
   defaultNode: {
     labelCfg: {
       style: {
-        fontSize: 20,
+        fontSize: 18,
       },
     },
   },

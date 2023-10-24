@@ -90,7 +90,8 @@ export default function FlowChart() {
 
       let graphNodes = nodes.filter((e) => e.label != 'ui')
       graphNodes.map((e) => {
-        e.label = e.label + '-' + e.id.substring(0, 4)
+        if (e.type != 'modelRect') e.label = e.label + '\n' + e.id.substring(0, 4)
+        else e.description = 'topic'
       })
       // Judge if the graph's nodes and edges change
       // Only refresh the graph if the graph's nodes and edges are different
